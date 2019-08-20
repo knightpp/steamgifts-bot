@@ -1,0 +1,7 @@
+/home/daniel/Programms/Clion/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Release -G "CodeBlocks - Unix Makefiles" /home/daniel/Projects/C++/SteamGiftsBot
+SteamGiftsBot: MAIN PROJECT: SteamGiftsBot
+SteamGiftsBot: CURR PROJECT: /home/daniel/Projects/C++/SteamGiftsBot
+SteamGiftsBot: CURR BIN DIR: /home/daniel/Projects/C++/SteamGiftsBot/cmake-build-release
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/daniel/Projects/C++/SteamGiftsBot/cmake-build-release
