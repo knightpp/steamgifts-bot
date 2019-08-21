@@ -19,6 +19,7 @@
 #include <sstream>
 //#include "Duration.h"
 
+#define SLEEP_PAGE_PARSE_MS 2500
 
 using namespace std;
 
@@ -43,6 +44,12 @@ struct GiveAway {
 	}
 };
 
+typedef std::vector<GiveAway> GArray;
+
+
+enum ERROR{	PREVIOUSLY_WON = -10, FUNDS_RAN_OUT,
+			UNKNOWN, OK	= 1};
+
 
 class SteamGiftAcc {
 private:
@@ -50,48 +57,28 @@ private:
 	const char* USERAGENT = "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.84 Safari/537.36";
 	ostream clog;
 	int funds = 0;
-	vector<GiveAway> giveaways;
 	string xsrf_token;
 	string phpsessidCookie;
 	bool logged;
+	static SteamGiftAcc* instance;
+
+	SteamGiftAcc();
 
 	static size_t WriteCallback(char *contents, size_t size, size_t nmemb, void *userp);
-	int parseInt(const string&) const;
-	bool enterGA(const GiveAway& ga);
+	static int parseInt(const string&);
+
+	
 	string get(const string& url, const string& cookie) const;
 	string post(const string& url, const string& cookie, const string& postfields, const GiveAway& ga) const;
-	void parseGiveaway(const string& url);
+	void parseGiveaway(const string& url, GArray* array);
 
 public:
-	SteamGiftAcc();
-	void parseGiveaways(int pageStart, int pageCount);
-	void parseGiveaways(int pages);
+	static SteamGiftAcc& getInstance();
+
+	ERROR enterGA(const GiveAway& ga);
+	GArray parseGiveaways(int pageCount = 1, int pageStart = 1);
 	bool log_in(const string& phpsessid);
-	void enterAllGA() {
-		static int entered = 0;
-		//fstream fileLog("log.txt", fstream::out | fstream::app);
-
-		sort(giveaways.begin(), giveaways.end(), [](const GiveAway& ga1, const GiveAway& ga2) {
-			return ga1.copies / (double)ga1.entries > ga2.copies / (double)ga2.entries;
-		});
-
-		for (const auto& g : giveaways) {
-			// if (g.copies / (float)g.entries >= 0.005f) {
-				if (enterGA(g)) {
-					++entered;
-					std::this_thread::sleep_for(std::chrono::milliseconds(500));
-				}
-				//fileLog << g.copies << '\t' << g.entries << '\t' << g.price << '\t' << g.copies / (double)g.entries << '\t' << g.name << '\n';
-			//}
-			
-		}
-		//fileLog.close();
-
-		giveaways.clear();
-		this->clog << string(80, '-') << endl;
-		this->clog << "Entered: " << entered;
-	}
+	//void enterAllGA();
 };
-
 
 #endif //STEAMGIFTSBOT_SGBOT_H

@@ -30,8 +30,6 @@ bool SteamGiftAcc::log_in(const string& phpsessid) {
 
 	this->phpsessidCookie = phpsessid;
 	string resp(std::move(get(SITEURL, phpsessidCookie)));
-	//ofstream fo("html.html");
-//	cout << get(SITEURL, phpsessidCookie) << endl;
 	logged = resp.find(loggedFlag) != string::npos;
 	if (logged) {
 		size_t index = resp.find(xsrfFlag);
@@ -52,7 +50,7 @@ SteamGiftAcc::SteamGiftAcc() : logged(false), funds(-1), clog(nullptr) {
 	clog << setfill(' ');
 }
 
-int SteamGiftAcc::parseInt(const string& str) const {
+int SteamGiftAcc::parseInt(const string& str){
 	stringstream ss;
 	for (char i : str) {
 		if (isdigit(i)) 
@@ -63,7 +61,7 @@ int SteamGiftAcc::parseInt(const string& str) const {
 	return stoi(ss.str());
 }
 
-bool SteamGiftAcc::enterGA(const GiveAway& ga) {
+ERROR SteamGiftAcc::enterGA(const GiveAway& ga) {
 	if ((funds - ga.price >= 0)) {
 		
 		string url(move(SITEURL + "/ajax.php"));
@@ -72,35 +70,23 @@ bool SteamGiftAcc::enterGA(const GiveAway& ga) {
 		bool rez = resp.find("success") != string::npos;
 		if (!rez) {
 			if (resp.find("Previously Won") == string::npos) {
-				static int errors = 0;
-				errors++;
-				D("Funds: " << funds << "\tPrice: " << ga.price << "\tHref: " << ga.href);
-				D("Resp: " << resp);
-				D("Errors catched: " << errors);
-				if (errors > 3) {
-					D("Too many errors.");
-					throw runtime_error((__FUNCTION__ + string(" - error response.")).c_str());
-				}
+				return ERROR::PREVIOUSLY_WON;
 			}
+			return ERROR::UNKNOWN;
 		}
 		else {
 			Log("Log: " << left << setw(40) <<
-				ga.name << right << "Price/Funds: " <<
+				ga.name << right << "P/F: " <<
 				setw(3) << ga.price  << '/' << left << setw(3) << funds << right
-				<< "  Copies/Entries: " << setw(4) << ga.copies << 
+				<< "  C/E: " << setw(4) << ga.copies << 
 				'/' << left << setw(5) << ga.entries << right);
 			//funds = funds - ga.price;
 			auto index = resp.find("points");
 			funds = parseInt(resp.substr(index, resp.size() - index));
-			return true;
+			return ERROR::OK;
 		}
-		 //parseInt(string(resp.begin() + resp.find("points") + 9, resp.end()));
-		
 	}
-	//    else if(funds == 0){
-	//        throw runtime_error((__FUNCTION__ + string(" - out of funds.")).c_str());
-	//    }
-	return false;
+	return ERROR::FUNDS_RAN_OUT;
 }
 
 string SteamGiftAcc::get(const string& url, const string& cookie) const{
@@ -121,9 +107,6 @@ string SteamGiftAcc::get(const string& url, const string& cookie) const{
 	list = curl_slist_append(list, "TE: Trailers");
 	list = curl_slist_append(list, "Upgrade-Insecure-Requests: 1");
 	list = curl_slist_append(list, USERAGENT);
-
-
-
 
 	curl_global_init(CURL_GLOBAL_ALL);
 	curl = curl_easy_init();
@@ -193,7 +176,7 @@ string SteamGiftAcc::post(const string& url, const string& cookie, const string&
 	return std::move(resp);
 }
 
-void SteamGiftAcc::parseGiveaway(const string& url){
+void SteamGiftAcc::parseGiveaway(const string& url, GArray* array){
 	/// переписать нормально
 
 	using namespace htmlcxx;
@@ -202,13 +185,6 @@ void SteamGiftAcc::parseGiveaway(const string& url){
 	tree<HTML::Node> dom = parser.parseTree(html);
 	tree<HTML::Node>::iterator it = dom.begin();
 	tree<HTML::Node>::iterator end = dom.end();
-
-
-	//string href;
-	//string name;
-	//int price;
-	//int copies;
-	//int entries;
 
 	for (; it != end; ++it) {
 		if (it->tagName() == "div") {
@@ -245,7 +221,7 @@ void SteamGiftAcc::parseGiveaway(const string& url){
 						}
 						++it;
 					}
-					giveaways.push_back(move(ga));
+					array->push_back(move(ga));
 				}
 			}
 		}
@@ -253,24 +229,20 @@ void SteamGiftAcc::parseGiveaway(const string& url){
 	D("Parsed url: " << url);
 }
 
-void SteamGiftAcc::parseGiveaways(const int pages) {
-	D("Parsing pages: " << pages);
+GArray SteamGiftAcc::parseGiveaways(int pageCount = 1, int pageStart = 1) {
+	GArray giveaways(pageCount * 50);
+	D("Parsing pages from: " << pageStart << " to " << pageStart + pageCount - 1);
 
-	giveaways.reserve(pages * 60);
+//giveaways.reserve((pageCount + pageStart) * 50);
 	static const string urlPage("https://www.steamgifts.com/giveaways/search?page=");
-	for (int i = 1; i <= pages; i++) {
-		parseGiveaway(urlPage + to_string(i));
-		std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+	for (int i = pageStart; i < pageCount + pageStart; i++) {
+		parseGiveaway(urlPage + to_string(i), &giveaways);
+		std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_PAGE_PARSE_MS));
 	}
 }
 
-void SteamGiftAcc::parseGiveaways(const int pageStart, const int pageCount) {
-	D("Parsing pages from: " << pageStart << " to " << pageStart + pageCount - 1);
-
-	giveaways.reserve((pageCount + pageStart) * 50);
-	static const string urlPage("https://www.steamgifts.com/giveaways/search?page=");
-	for (int i = pageStart; i < pageCount + pageStart; i++) {
-		parseGiveaway(urlPage + to_string(i));
-		std::this_thread::sleep_for(std::chrono::milliseconds(2500));
-	}
+SteamGiftAcc& SteamGiftAcc::getInstance(){
+	if(instance == nullptr)
+		instance = new SteamGiftAcc();
+	return *instance;
 }
