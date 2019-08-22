@@ -40,9 +40,10 @@ int main(int argc, char** argv) {
             printf("Parsed: %2d\n", giveaways.size());
             printf("Entering giveaways...\n");
             for(const auto& ga : giveaways){
-                if(acc->enterGA(ga) == ERROR::FUNDS_RAN_OUT)
+                ERROR err = acc->enterGA(ga);
+                if(err == ERROR::FUNDS_RAN_OUT)
                     break;
-                switch(acc->enterGA(ga)){
+                switch(err){
                     case ERROR::OK:{
                         ++entered;
                         printf("[%40s] -- Price: %2d, Chance: %f%%\n", ga.name.c_str(), ga.price, ga.getChancePercent());

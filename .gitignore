@@ -2,3 +2,7 @@
 .idea/
 cmake-build-*/
 *.gch
+SteamGiftsBot
+build/
+build-release/
+build-debug/
