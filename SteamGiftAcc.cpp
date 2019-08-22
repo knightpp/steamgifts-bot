@@ -31,7 +31,7 @@ bool SteamGiftAcc::log_in(const string& phpsessid) {
 	return false;
 }
 
-SteamGiftAcc::SteamGiftAcc() : funds(-1), clog(nullptr) {
+SteamGiftAcc::SteamGiftAcc() : funds(-1){
 
 	clog.rdbuf(cout.rdbuf());
 	clog << setfill(' ');
@@ -214,14 +214,13 @@ GArray SteamGiftAcc::parseGiveaways(int pageCount/* = 1*/, int pageStart/* = 1*/
 	static const string urlPage("https://www.steamgifts.com/giveaways/search?page=");
 	for (int i = pageStart; i < pageCount + pageStart; i++) {
 		parseGiveaway(urlPage + to_string(i), &giveaways);
-		std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_PAGE_PARSE_MS));
+		if(pageCount > 1)
+			std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_PAGE_PARSE_MS));
 	}
 	return giveaways;
 }
 
 SteamGiftAcc* SteamGiftAcc::getInstance(){
 	static SteamGiftAcc instance;
-//	if(instance == nullptr)
-		//instance = new SteamGiftAcc();
 	return &instance;
 }

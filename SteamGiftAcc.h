@@ -57,11 +57,14 @@ struct GiveAway {
 	void setName(string&& name) {
 		this->name = std::move(name);
 	}
+	float getChancePercent() const{
+		return (copies/(float)entries) * 100.0f;
+	}
 
 	explicit operator std::string() const{
 		std::stringstream ss;
-		ss << "Href: " << href << "\nName: " << name << "\nPrice: " << 
-			price << "\nCopies: " << copies << "\nEntries: " << entries;
+		ss << "{Href: " << href << "\nName: " << name << "\nPrice: " << 
+			price << "\nCopies: " << copies << "\nEntries: " << entries << '}';
 		return ss.str();
 	}
 };
@@ -71,11 +74,16 @@ typedef std::vector<GiveAway> GArray;
 
 enum ERROR{	PREVIOUSLY_WON = -10, FUNDS_RAN_OUT, UNKNOWN, OK = 1};
 
+
+/**
+ * SteamGifts account abstraction
+ * 
+ * Currently cannot work with multiple accounts.
+ */
 class SteamGiftAcc {
 private:
 	const string SITEURL = "https://www.steamgifts.com";
 	const char* USERAGENT = "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.84 Safari/537.36";
-	ostream clog;
 	int funds = 0;
 	string xsrf_token;
 	string phpsessidCookie;
@@ -93,9 +101,24 @@ private:
 
 public:
 	static SteamGiftAcc* getInstance();
-
+	/**
+	 * Enter the giveaway.
+	 * @param giveaway to enter
+	 */
 	ERROR enterGA(const GiveAway& ga);
+	/**
+	 * Parse data from the site.
+	 * @param number of pages to parse
+	 * @param page to start from
+	 */
 	GArray parseGiveaways(int pageCount = 1, int pageStart = 1) const;
+	/**
+	 * Login with cookie.
+	 * 
+	 * If failed returns false, otherwise true.
+	 * 
+	 * @param cookie string(no junk characters)
+	 */
 	bool log_in(const string& phpsessid);
 };
 
