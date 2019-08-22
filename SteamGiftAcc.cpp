@@ -3,20 +3,6 @@
 //
 
 #include "SteamGiftAcc.h"
-#define LOG
-//#undef DEBUG
-
-#ifdef DEBUG
-#define D(str) do { clog << str << std::endl; } while( false )
-#else
-#define D(str) do { } while ( false )
-#endif
-
-#ifdef LOG
-#define Log(str) do { clog << str << std::endl; } while( false )
-#else
-#define D(str) do { } while ( false )
-#endif
 
 size_t SteamGiftAcc::WriteCallback(char *contents, size_t size, size_t nmemb, void *userp) {
 	((std::string *) userp)->append((char *)contents, size * nmemb);
@@ -30,7 +16,7 @@ bool SteamGiftAcc::log_in(const string& phpsessid) {
 
 	this->phpsessidCookie = phpsessid;
 	string resp(std::move(get(SITEURL, phpsessidCookie)));
-	logged = resp.find(loggedFlag) != string::npos;
+	bool logged = resp.find(loggedFlag) != string::npos;
 	if (logged) {
 		size_t index = resp.find(xsrfFlag);
 		xsrf_token = string(resp.begin() + index + xsrfFlag.size(),
@@ -45,7 +31,8 @@ bool SteamGiftAcc::log_in(const string& phpsessid) {
 	return false;
 }
 
-SteamGiftAcc::SteamGiftAcc() : logged(false), funds(-1), clog(nullptr) {
+SteamGiftAcc::SteamGiftAcc() : funds(-1), clog(nullptr) {
+
 	clog.rdbuf(cout.rdbuf());
 	clog << setfill(' ');
 }
@@ -61,9 +48,8 @@ int SteamGiftAcc::parseInt(const string& str){
 	return stoi(ss.str());
 }
 
-ERROR SteamGiftAcc::enterGA(const GiveAway& ga) {
+ERROR SteamGiftAcc::enterGA(const GiveAway& ga){
 	if ((funds - ga.price >= 0)) {
-		
 		string url(move(SITEURL + "/ajax.php"));
 		string postfields(move("xsrf_token=" + xsrf_token+ "&do=entry_insert&" +"code=" + ga.getCode() ));
 		string resp(move(post(url, phpsessidCookie, postfields, ga)));
@@ -75,11 +61,6 @@ ERROR SteamGiftAcc::enterGA(const GiveAway& ga) {
 			return ERROR::UNKNOWN;
 		}
 		else {
-			Log("Log: " << left << setw(40) <<
-				ga.name << right << "P/F: " <<
-				setw(3) << ga.price  << '/' << left << setw(3) << funds << right
-				<< "  C/E: " << setw(4) << ga.copies << 
-				'/' << left << setw(5) << ga.entries << right);
 			//funds = funds - ga.price;
 			auto index = resp.find("points");
 			funds = parseInt(resp.substr(index, resp.size() - index));
@@ -138,10 +119,8 @@ string SteamGiftAcc::post(const string& url, const string& cookie, const string&
 	string resp;
 	CURL *curl;
 	CURLcode res;
-
 	//Accept-Encoding: gzip, deflate, br ,......//////////////////////////////////////////////////
-
-//	list = curl_slist_append(list, "Accept: application/json, text/javascript, */*; q=0.01");
+    //	list = curl_slist_append(list, "Accept: application/json, text/javascript, */*; q=0.01");
 	list = curl_slist_append(list, "Host: www.steamgifts.com");
 	list = curl_slist_append(list, USERAGENT);
 	list = curl_slist_append(list, "Accept: application/json, text/javascript, */*; q=0.01");
@@ -151,7 +130,6 @@ string SteamGiftAcc::post(const string& url, const string& cookie, const string&
 	list = curl_slist_append(list, "Content-Length: 70");
 	list = curl_slist_append(list, "DNT: 1");
 	list = curl_slist_append(list, "Connection: close");
-
 	list = curl_slist_append(list, ("Cookie: PHPSESSID=" + cookie).c_str());
 	list = curl_slist_append(list, "TE: Trailers");
 
@@ -176,9 +154,8 @@ string SteamGiftAcc::post(const string& url, const string& cookie, const string&
 	return std::move(resp);
 }
 
-void SteamGiftAcc::parseGiveaway(const string& url, GArray* array){
+void SteamGiftAcc::parseGiveaway(const string& url, GArray* array) const{
 	/// переписать нормально
-
 	using namespace htmlcxx;
 	HTML::ParserDom parser;
 	string html = move(get(url, phpsessidCookie));
@@ -196,7 +173,7 @@ void SteamGiftAcc::parseGiveaway(const string& url, GArray* array){
 					it += 6;
 					it->parseAttributes();
 
-					GiveAway ga; // Should i initialize by constructor?  /// by ????
+					GiveAway ga;
 					ga.href = it->attribute("href").second;
 					ga.setName((++it)->text());
 					--it;
@@ -229,20 +206,22 @@ void SteamGiftAcc::parseGiveaway(const string& url, GArray* array){
 	D("Parsed url: " << url);
 }
 
-GArray SteamGiftAcc::parseGiveaways(int pageCount = 1, int pageStart = 1) {
-	GArray giveaways(pageCount * 50);
+GArray SteamGiftAcc::parseGiveaways(int pageCount/* = 1*/, int pageStart/* = 1*/) const{
+	GArray giveaways;
 	D("Parsing pages from: " << pageStart << " to " << pageStart + pageCount - 1);
 
-//giveaways.reserve((pageCount + pageStart) * 50);
+	giveaways.reserve(pageCount * 50);
 	static const string urlPage("https://www.steamgifts.com/giveaways/search?page=");
 	for (int i = pageStart; i < pageCount + pageStart; i++) {
 		parseGiveaway(urlPage + to_string(i), &giveaways);
 		std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_PAGE_PARSE_MS));
 	}
+	return giveaways;
 }
 
-SteamGiftAcc& SteamGiftAcc::getInstance(){
-	if(instance == nullptr)
-		instance = new SteamGiftAcc();
-	return *instance;
+SteamGiftAcc* SteamGiftAcc::getInstance(){
+	static SteamGiftAcc instance;
+//	if(instance == nullptr)
+		//instance = new SteamGiftAcc();
+	return &instance;
 }

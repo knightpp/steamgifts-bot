@@ -1,3 +1,0 @@
-/home/daniel/Projects/C++/SteamGiftsBot/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/daniel/Projects/C++/SteamGiftsBot/cmake-build-debug/CMakeFiles/SteamGiftsBot.dir
-/home/daniel/Projects/C++/SteamGiftsBot/cmake-build-debug/CMakeFiles/edit_cache.dir

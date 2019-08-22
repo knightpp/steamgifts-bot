@@ -5,7 +5,6 @@
 #ifndef STEAMGIFTSBOT_SGBOT_H
 #define STEAMGIFTSBOT_SGBOT_H
 
-
 #include <fstream>
 #include <vector>
 #include <string>
@@ -13,13 +12,29 @@
 #include <stdexcept>
 #include <iostream>
 #include <algorithm>
-#include "htmlcxx/html/ParserDom.h"
 #include <thread>
 #include <iomanip>
 #include <sstream>
+#include "htmlcxx/html/ParserDom.h"
 //#include "Duration.h"
 
+#define FILL_WIDTH 80
 #define SLEEP_PAGE_PARSE_MS 2500
+
+#define LOG
+//#undef DEBUG
+
+#ifdef DEBUG
+#define D(str) do { clog << str << std::endl; } while( false )
+#else
+#define D(str) do { } while ( false )
+#endif
+
+#ifdef LOG
+#define Log(str) do { clog << str << std::endl; } while( false )
+#else
+#define Log(str) do { } while ( false )
+#endif
 
 using namespace std;
 
@@ -42,14 +57,19 @@ struct GiveAway {
 	void setName(string&& name) {
 		this->name = std::move(name);
 	}
+
+	explicit operator std::string() const{
+		std::stringstream ss;
+		ss << "Href: " << href << "\nName: " << name << "\nPrice: " << 
+			price << "\nCopies: " << copies << "\nEntries: " << entries;
+		return ss.str();
+	}
 };
 
 typedef std::vector<GiveAway> GArray;
 
 
-enum ERROR{	PREVIOUSLY_WON = -10, FUNDS_RAN_OUT,
-			UNKNOWN, OK	= 1};
-
+enum ERROR{	PREVIOUSLY_WON = -10, FUNDS_RAN_OUT, UNKNOWN, OK = 1};
 
 class SteamGiftAcc {
 private:
@@ -59,26 +79,26 @@ private:
 	int funds = 0;
 	string xsrf_token;
 	string phpsessidCookie;
-	bool logged;
-	static SteamGiftAcc* instance;
 
 	SteamGiftAcc();
+	SteamGiftAcc(const SteamGiftAcc&) = delete;
+	SteamGiftAcc& operator=(const SteamGiftAcc&) = delete;
 
 	static size_t WriteCallback(char *contents, size_t size, size_t nmemb, void *userp);
 	static int parseInt(const string&);
 
-	
 	string get(const string& url, const string& cookie) const;
 	string post(const string& url, const string& cookie, const string& postfields, const GiveAway& ga) const;
-	void parseGiveaway(const string& url, GArray* array);
+	void parseGiveaway(const string& url, GArray* array) const;
 
 public:
-	static SteamGiftAcc& getInstance();
+	static SteamGiftAcc* getInstance();
 
 	ERROR enterGA(const GiveAway& ga);
-	GArray parseGiveaways(int pageCount = 1, int pageStart = 1);
+	GArray parseGiveaways(int pageCount = 1, int pageStart = 1) const;
 	bool log_in(const string& phpsessid);
-	//void enterAllGA();
 };
+
+
 
 #endif //STEAMGIFTSBOT_SGBOT_H

@@ -1,1 +1,0 @@
-/usr/bin/c++   -std=c++11 -g  -rdynamic CMakeFiles/SteamGiftsBot.dir/main.cpp.o CMakeFiles/SteamGiftsBot.dir/SteamGiftAcc.cpp.o  -o SteamGiftsBot -lcurl -lhtmlcxx 

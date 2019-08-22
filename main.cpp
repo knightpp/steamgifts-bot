@@ -1,5 +1,6 @@
 #include "SteamGiftAcc.h"
 #include <fstream>
+#include <cstdio>
 
 using namespace std;
 
@@ -26,16 +27,42 @@ int main(int argc, char** argv) {
     }
 
     cout << "Phpsessid: " << phpsessid << endl;
-    SteamGiftAcc& b = SteamGiftAcc::getInstance();
-    if(b.log_in(phpsessid)){
-        auto giveaways = b.parseGiveaways(); //parse first page
-
+    SteamGiftAcc* b = SteamGiftAcc::getInstance();
+    if(b->log_in(phpsessid)){
+        while (true)
+        {
+            printf("Parsing data...\n");
+            auto giveaways = b->parseGiveaways(); //parse first page
+            printf("Data has parsed...\n");
+            printf("Entering giveaways...\n");
+            for(const auto& ga : giveaways){
+                
+                if(b->enterGA(ga) == ERROR::FUNDS_RAN_OUT)
+                    break;
+            
+                switch(b->enterGA(ga)){
+                    case ERROR::OK:{
+                        printf("[%40s]\n", ga.name.c_str());
+                        break;
+                    }
+                    case ERROR::PREVIOUSLY_WON:{
+                        printf("[%40s] -- PREVIOUSLY_WON\n", ga.name.c_str());
+                        break;
+                    }
+                    case ERROR::UNKNOWN:{
+                        printf("[%40s] -- ERROR\n", ga.name);
+                        std::cout << static_cast<std::string>(ga) << "\n\n";
+                        break;
+                    }
+                }
+            }
+            printf("Entered giveaways.\n");
+            std::cout << "Sleeping for 15 mins." << std::endl;
+	        std::this_thread::sleep_for(std::chrono::minutes(15));
+        }
     }else{
         std::cout << "Login failed.\n";
     }
-
-	// 	cout << "\tsleeping for 15 mins." << std::endl;
-	// 	std::this_thread::sleep_for(std::chrono::minutes(15));
     
     cout << "Exiting..." << endl;
 	curl_global_cleanup();
