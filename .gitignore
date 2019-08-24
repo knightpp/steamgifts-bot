@@ -1,8 +1,11 @@
-.vscode/
-.idea/
-cmake-build-*/
-*.gch
-SteamGiftsBot
-build/
-build-release/
-build-debug/
+<<<<<<< HEAD
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+>>>>>>> f2f9e37085fa44c08a6a27097cabdd4193124dc6
