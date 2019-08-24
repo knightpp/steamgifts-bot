@@ -50,8 +50,8 @@ int SteamGiftAcc::parseInt(const string& str){
 
 ERROR SteamGiftAcc::enterGA(const GiveAway& ga){
 	if ((points - ga.price >= 0)) {
-		string url(move(SITEURL + "/ajax.php"));
-		string postfields(move("xsrf_token=" + xsrf_token+ "&do=entry_insert&" +"code=" + ga.getCode() ));
+		static string url(SITEURL + "/ajax.php");
+		string postfields(move("xsrf_token=" + xsrf_token+ "&do=entry_insert&" +"code=" + ga.getCode()));
 		string resp(move(post(url, phpsessidCookie, postfields, ga)));
 		bool rez = resp.find("success") != string::npos;
 		if (!rez) {
@@ -223,4 +223,8 @@ GArray SteamGiftAcc::parseGiveaways(int pageCount/* = 1*/, int pageStart/* = 1*/
 SteamGiftAcc* SteamGiftAcc::getInstance(){
 	static SteamGiftAcc instance;
 	return &instance;
+}
+
+int SteamGiftAcc::getPoints() const {
+    return this->points;
 }

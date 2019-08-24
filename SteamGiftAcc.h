@@ -89,8 +89,7 @@ private:
 	string phpsessidCookie;
 
 	SteamGiftAcc();
-	SteamGiftAcc(const SteamGiftAcc&) = delete;
-	SteamGiftAcc& operator=(const SteamGiftAcc&) = delete;
+	
 
 	static size_t WriteCallback(char *contents, size_t size, size_t nmemb, void *userp);
 	static int parseInt(const string&);
@@ -100,6 +99,8 @@ private:
 	void parseGiveaway(const string& url, GArray* array) const;
 
 public:
+    SteamGiftAcc(const SteamGiftAcc&) = delete;
+    SteamGiftAcc& operator=(const SteamGiftAcc&) = delete;
 	static SteamGiftAcc* getInstance();
 	/**
 	 * Enter the giveaway.
@@ -120,6 +121,13 @@ public:
 	 * @param cookie string(no junk characters)
 	 */
 	bool log_in(const string& phpsessid);
+	
+	/**
+	 * Last parsed number of points
+	 *  
+	 * @return last parsed number of points
+	 */
+	int getPoints() const;
 };
 
 
