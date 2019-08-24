@@ -10,7 +10,7 @@ size_t SteamGiftAcc::WriteCallback(char *contents, size_t size, size_t nmemb, vo
 }
 
 bool SteamGiftAcc::log_in(const string& phpsessid) {
-	const string loggedFlag = "<div class=\"nav__row is-clickable js__logout\"";
+	const string loggedFlag = R"(<div class="nav__row is-clickable js__logout")";
 	const string xsrfFlag = R"(<input type="hidden" name="xsrf_token" value=")";
 	const string fundsFlag = R"(<span class="nav__points">)";
 
@@ -24,14 +24,14 @@ bool SteamGiftAcc::log_in(const string& phpsessid) {
 		D("Logged: true\txsrf_token: " << xsrf_token);
 
 		index = resp.find(fundsFlag);
-		funds = parseInt(string(resp.begin() + index + fundsFlag.size(), resp.begin() + index + xsrfFlag.size() + 4));
-		D("Funds: " << funds);
+		points = parseInt(string(resp.begin() + index + fundsFlag.size(), resp.begin() + index + xsrfFlag.size() + 4));
+		D("Funds: " << points);
 		return true;
 	}
 	return false;
 }
 
-SteamGiftAcc::SteamGiftAcc() : funds(-1){
+SteamGiftAcc::SteamGiftAcc() : points(-1){
 
 	clog.rdbuf(cout.rdbuf());
 	clog << setfill(' ');
@@ -49,7 +49,7 @@ int SteamGiftAcc::parseInt(const string& str){
 }
 
 ERROR SteamGiftAcc::enterGA(const GiveAway& ga){
-	if ((funds - ga.price >= 0)) {
+	if ((points - ga.price >= 0)) {
 		string url(move(SITEURL + "/ajax.php"));
 		string postfields(move("xsrf_token=" + xsrf_token+ "&do=entry_insert&" +"code=" + ga.getCode() ));
 		string resp(move(post(url, phpsessidCookie, postfields, ga)));
@@ -61,13 +61,13 @@ ERROR SteamGiftAcc::enterGA(const GiveAway& ga){
 			return ERROR::UNKNOWN;
 		}
 		else {
-			//funds = funds - ga.price;
+			//points = points - ga.price;
 			auto index = resp.find("points");
-			funds = parseInt(resp.substr(index, resp.size() - index));
+			points = parseInt(resp.substr(index, resp.size() - index));
 			return ERROR::OK;
 		}
 	}
-	return ERROR::FUNDS_RAN_OUT;
+	return ERROR::NOT_ENOUGH_POINTS;
 }
 
 string SteamGiftAcc::get(const string& url, const string& cookie) const{
@@ -217,7 +217,7 @@ GArray SteamGiftAcc::parseGiveaways(int pageCount/* = 1*/, int pageStart/* = 1*/
 		if(pageCount > 1)
 			std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_PAGE_PARSE_MS));
 	}
-	return giveaways;
+	return std::move(giveaways);
 }
 
 SteamGiftAcc* SteamGiftAcc::getInstance(){

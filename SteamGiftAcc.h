@@ -72,7 +72,7 @@ struct GiveAway {
 typedef std::vector<GiveAway> GArray;
 
 
-enum ERROR{	PREVIOUSLY_WON = -10, FUNDS_RAN_OUT, UNKNOWN, OK = 1};
+enum ERROR{	PREVIOUSLY_WON = -10, NOT_ENOUGH_POINTS, UNKNOWN, OK = 1};
 
 
 /**
@@ -84,7 +84,7 @@ class SteamGiftAcc {
 private:
 	const string SITEURL = "https://www.steamgifts.com";
 	const char* USERAGENT = "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.84 Safari/537.36";
-	int funds = 0;
+	int points = 0;
 	string xsrf_token;
 	string phpsessidCookie;
 

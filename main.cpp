@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    cout << "Phpsessid: " << phpsessid << endl;
+    //cout << "Phpsessid: " << phpsessid << endl;
     SteamGiftAcc* acc = SteamGiftAcc::getInstance();
     if(acc->log_in(phpsessid)){
         while (true)
@@ -30,18 +30,17 @@ int main(int argc, char** argv) {
             int entered = 0;
             static int totalEntered = 0;
             printf("Parsing data...\n");
-            auto giveaways = acc->parseGiveaways(); //parse first page
+            auto giveaways(std::move(acc->parseGiveaways())); //parse first page
             std::sort(giveaways.begin(), giveaways.end(), 
             [](const GiveAway& ga1, const GiveAway& ga2){
                 return ga1.getChancePercent() > ga2.getChancePercent();
             });
 
-
             printf("Parsed: %2d\n", giveaways.size());
             printf("Entering giveaways...\n");
             for(const auto& ga : giveaways){
                 ERROR err = acc->enterGA(ga);
-                if(err == ERROR::FUNDS_RAN_OUT)
+                if(err == ERROR::NOT_ENOUGH_POINTS)
                     break;
                 switch(err){
                     case ERROR::OK:{
