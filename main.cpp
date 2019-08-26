@@ -1,6 +1,7 @@
 #include "SteamGiftAcc.h"
 #include <fstream>
 #include <cstdio>
+#include <exception>
 
 using namespace std;
 
@@ -26,6 +27,8 @@ int main(int argc, char** argv) {
     SteamGiftAcc* acc = SteamGiftAcc::getInstance();
 
     bool logged;
+    start:
+    try{
     while ((logged = acc->log_in(phpsessid)))
     {
         int entered = 0;
@@ -38,7 +41,7 @@ int main(int argc, char** argv) {
                           return ga1.getChancePercent() > ga2.getChancePercent();
                       });
 
-            printf("Parsed giveaways: %2d\n", giveaways.size());
+            printf("Parsed giveaways: %2zu\n", giveaways.size());
             printf("Points available: %3d\n", acc->getPoints());
             printf("Entering giveaways...\n");
             for(const auto& ga : giveaways){
@@ -57,7 +60,7 @@ int main(int argc, char** argv) {
                     }
                     case ERROR::UNKNOWN:{
                         printf("[%40s] -- ERROR\n", ga.name.c_str());
-                        printf("%s\n\n",static_cast<std::string>(ga).c_str());
+                        printf("%s\n",static_cast<std::string>(ga).c_str());
                         break;
                     }
                 }
@@ -71,6 +74,12 @@ int main(int argc, char** argv) {
                ltm->tm_hour, ltm->tm_min, ltm->tm_sec
         );
         std::this_thread::sleep_for(std::chrono::minutes(15));
+    }}
+    catch (std::runtime_error &err){
+        printf("Caught error\nWhat(): %s\n", err.what());
+        printf("Next try in 5 mins.");
+        std::this_thread::sleep_for(std::chrono::minutes(5));
+        goto start;
     }
     if(!logged)
         printf("Login failed.\n");
