@@ -2,6 +2,7 @@
 #include <fstream>
 #include <cstdio>
 #include <exception>
+#include "dependencies/cxxopts/include/cxxopts.hpp"
 
 using namespace std;
 
@@ -10,17 +11,28 @@ bool WriteToFile(const string& path, const string& data);
 
 
 int main(int argc, char** argv) {
-    string phpsessid;
-    int pages = 1;
     printf("[Bild date] %s, %s\n", __DATE__, __TIME__);
-    if(!ReadFromFile("data.ini", &phpsessid)){
-        if(argc >= 2){
-            phpsessid = argv[1];
-        }else{
-            printf("Enter phpsessid: ");
-            cin >> phpsessid;
-            WriteToFile("data.ini", phpsessid);
-        }
+    cxxopts::Options options("SteamGiftsBot", "Bot for http://steamgifts.com/");
+    options.add_options()
+        ("h,help", "Print help")
+        ("c,cookie", "Auth cookie", cxxopts::value<std::string>())
+        ("config", "Path to config", cxxopts::value<std::string>()->default_value("data.ini"));
+    string phpsessid;
+
+    auto result = options.parse(argc, argv);
+    if(result.count("help")){
+        printf("%s\n", options.help().c_str());
+        return 0;
+    }
+
+    if(result.count("cookie")){
+        phpsessid = result["cookie"].as<std::string>();
+    }
+
+    auto path = result["config"].as<std::string>();
+    if(!ReadFromFile(path, &phpsessid)){
+        printf("Can't open file \"%s\"\n", path.c_str());
+        return 0;
     }
 
     //cout << "Phpsessid: " << phpsessid << endl;
@@ -93,12 +105,6 @@ int main(int argc, char** argv) {
     return 0;
 }
 
-bool WriteToFile(const string& path, const string& data) {
-    ofstream fo(path);
-    fo << data;
-    fo.close();
-    return fo.good();
-}
 bool ReadFromFile(const string& path, string* lhs) {
     char buf[103 + 1];
     ifstream f(path);

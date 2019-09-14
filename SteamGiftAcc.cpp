@@ -10,9 +10,9 @@ size_t SteamGiftAcc::WriteCallback(char *contents, size_t size, size_t nmemb, vo
 }
 
 bool SteamGiftAcc::log_in(const string& phpsessid) {
-	const string loggedFlag = R"(<div class="nav__row is-clickable js__logout")";
-	const string xsrfFlag = R"(<input type="hidden" name="xsrf_token" value=")";
-	const string fundsFlag = R"(<span class="nav__points">)";
+	static string loggedFlag = R"(<div class="nav__row is-clickable js__logout")";
+    static string xsrfFlag = R"(<input type="hidden" name="xsrf_token" value=")";
+    static string fundsFlag = R"(<span class="nav__points">)";
 
 	this->phpsessidCookie = phpsessid;
 	string resp(std::move(get(SITEURL, phpsessidCookie)));
@@ -32,9 +32,8 @@ bool SteamGiftAcc::log_in(const string& phpsessid) {
 }
 
 SteamGiftAcc::SteamGiftAcc() : points(-1){
-
 	clog.rdbuf(cout.rdbuf());
-	clog << setfill(' ');
+	//clog << setfill(' ');
 }
 
 int SteamGiftAcc::parseInt(const string& str){
@@ -44,7 +43,8 @@ int SteamGiftAcc::parseInt(const string& str){
 			ss << i;
 	}
 	if (ss.tellp() == 0)
-		return 0;
+	    throw std::runtime_error("Tried to parse INT from STRING, but no INT was found.\nstr: " + str);
+		//return 0;
 	return stoi(ss.str());
 }
 

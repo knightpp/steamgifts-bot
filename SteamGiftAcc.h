@@ -58,7 +58,7 @@ struct GiveAway {
 		this->name = std::move(name);
 	}
 	float getChancePercent() const{
-		return (copies/(float)entries) * 100.0f;
+		return ((float)copies/(float)(entries == 0 ? copies : entries)) * 100.0f;
 	}
 
 	explicit operator std::string() const{
