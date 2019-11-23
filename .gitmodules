@@ -3,4 +3,4 @@
 	url = git://git.code.sf.net/p/htmlcxx/code
 [submodule "cxxopts"]
 	path = dependencies/cxxopts
-	url = git@github.com:jarro2783/cxxopts.git
+	url = https://github.com/jarro2783/cxxopts.git
