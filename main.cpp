@@ -24,13 +24,10 @@ int main(int argc, char** argv) {
         printf("%s\n", options.help().c_str());
         return 0;
     }
-
+    auto path = result["config"].as<std::string>();
     if(result.count("cookie")){
         phpsessid = result["cookie"].as<std::string>();
-    }
-
-    auto path = result["config"].as<std::string>();
-    if(!ReadFromFile(path, &phpsessid)){
+    }else if(!ReadFromFile(path, &phpsessid)){
         printf("Can't open file \"%s\"\n", path.c_str());
         return 0;
     }
