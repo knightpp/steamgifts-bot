@@ -2,7 +2,7 @@
 #include <fstream>
 #include <cstdio>
 #include <exception>
-#include "dependencies/cxxopts/include/cxxopts.hpp"
+#include "cxxopts/include/cxxopts.hpp"
 
 using namespace std;
 
