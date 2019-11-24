@@ -35,10 +35,10 @@ endif()
 
 #set(CMAKE_CXX_COMPILER g++-7)
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-	set(CMAKE_CXX_FLAGS "-O3 ${CMAKE_CXX_FLAGS}")
+	set(CMAKE_CXX_FLAGS "-O3 -s ${CMAKE_CXX_FLAGS}")
 endif()
 
-project(${PROJECT_NAME} VERSION 0.1.0
+project(${PROJECT_NAME} 
 						DESCRIPTION "SteamGifts bot"
 						LANGUAGES CXX)
 						
