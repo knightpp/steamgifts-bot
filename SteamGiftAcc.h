@@ -39,7 +39,7 @@
 using namespace std;
 
 struct GiveAway {
-	GiveAway() : copies(1), entries(0), price(0) {
+	GiveAway() : price(0),copies(1), entries(0){
 	}
 
 	string href;

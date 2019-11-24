@@ -111,7 +111,7 @@ string SteamGiftAcc::get(const string& url, const string& cookie) const{
 	}
 	curl_easy_cleanup(curl);
 	//curl_global_cleanup();
-	return std::move(resp);
+	return resp;
 }
 
 string SteamGiftAcc::post(const string& url, const string& cookie, const string& postfields, const GiveAway& ga) const{
@@ -151,7 +151,7 @@ string SteamGiftAcc::post(const string& url, const string& cookie, const string&
 		curl_easy_cleanup(curl);
 	}
 	//curl_global_cleanup();
-	return std::move(resp);
+	return resp;
 }
 
 void SteamGiftAcc::parseGiveaway(const string& url, GArray* array) const{
@@ -217,7 +217,7 @@ GArray SteamGiftAcc::parseGiveaways(int pageCount/* = 1*/, int pageStart/* = 1*/
 		if(pageCount > 1)
 			std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_PAGE_PARSE_MS));
 	}
-	return std::move(giveaways);
+	return giveaways;
 }
 
 SteamGiftAcc* SteamGiftAcc::getInstance(){
