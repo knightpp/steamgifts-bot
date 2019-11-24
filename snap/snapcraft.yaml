@@ -19,11 +19,13 @@ parts:
     build-packages:
       - g++
       - make
-      - libcurl4-openssl-dev
+      - libcurl4-gnutls-dev
       - libhtmlcxx-dev
+      - git
     stage-packages:
       - libcurl4
       - libhtmlcxx3v5
+      
 
 apps:
     steamgiftsbot:
