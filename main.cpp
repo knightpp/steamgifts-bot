@@ -27,12 +27,12 @@ int main(int argc, char** argv) {
     auto path = result["config"].as<std::string>();
     if(result.count("cookie")){
         phpsessid = result["cookie"].as<std::string>();
+        WriteToFile(path, phpsessid);
     }else if(!ReadFromFile(path, &phpsessid)){
-        printf("Can't open file \"%s\"\n", path.c_str());
+        printf("->Can't open file \"%s\"\n", path.c_str());
         return 0;
     }
 
-    //cout << "Phpsessid: " << phpsessid << endl;
     SteamGiftAcc* acc = SteamGiftAcc::getInstance();
 
     bool logged;
@@ -75,6 +75,7 @@ int main(int argc, char** argv) {
                 }
             }
         }
+        
         printf("Entered: %3d\n", entered);
         printf("Total:   %3d\n", totalEntered += entered);
         time_t now = time(0);
@@ -85,8 +86,8 @@ int main(int argc, char** argv) {
         std::this_thread::sleep_for(std::chrono::minutes(15));
     }}
     catch (std::runtime_error &err){
-        printf("Caught error\nWhat(): %s\n", err.what());
-        printf("Next try in 5 mins.");
+        printf("->Caught error\nWhat(): %s\n", err.what());
+        printf("->Next try in 5 mins.");
         std::this_thread::sleep_for(std::chrono::minutes(5));
         goto start;
     }
@@ -108,8 +109,22 @@ bool ReadFromFile(const string& path, string* lhs) {
     if(!f.is_open())
         return false;
     f.getline(buf, 103 + 1);
-    //f >> (*lhs);
     f.close();
     (*lhs) = std::string(buf);
     return strlen(buf) == 103;
 }
+
+bool WriteToFile(const string& path, const string& data){
+    try{
+        ofstream f(path);
+        f << data << std::endl;
+        f.close();
+        return true;
+    }catch(std::ofstream::failure& writeErr){
+        printf("->%s() failed\n->What(): %s", __FUNCTION__, writeErr.what());
+    }catch(...){
+        printf("->%s() failed\n->Unknown error.", __FUNCTION__);
+    }
+    return false;
+}
+    
