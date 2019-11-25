@@ -1,9 +1,13 @@
 cmake_minimum_required(VERSION 3.0)
 
 set(PROJECT_NAME SteamGiftsBot)
-set(EXE_NAME steamgiftsbot)
+set(TARGET_NAME steamgiftsbot)
 
-set(CMAKE_BUILD_TYPE Release)
+if(CMAKE_BUILD_TYPE)
+set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+else()
+set(CMAKE_BUILD_TYPE "Release")
+endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 set(PROJECT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
@@ -33,10 +37,16 @@ endif()
 
 
 
+
+
 #set(CMAKE_CXX_COMPILER g++-7)
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
 	set(CMAKE_CXX_FLAGS "-O3 -s ${CMAKE_CXX_FLAGS}")
 endif()
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	set(CMAKE_CXX_FLAGS "-O0 -g ${CMAKE_CXX_FLAGS}")
+endif()
+
 
 project(${PROJECT_NAME} 
 						DESCRIPTION "SteamGifts bot"
@@ -44,22 +54,27 @@ project(${PROJECT_NAME}
 						
 
 
-
 add_executable(
-	${EXE_NAME}
+	${TARGET_NAME}
 	main.cpp
 	SteamGiftAcc.cpp
 )
 
-target_include_directories(${EXE_NAME} PUBLIC 
+if(SNAP_BUILD)
+target_compile_definitions(${TARGET_NAME} PRIVATE SNAP_BUILD=1)
+endif()
+
+
+target_include_directories(${TARGET_NAME} PUBLIC 
                             ${PROJECT_SOURCE_DIR}/dependencies)
                             
-target_link_libraries(${EXE_NAME} curl htmlcxx)
+target_link_libraries(${TARGET_NAME} curl htmlcxx)
 
 #install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${EXE_NAME}"
 #		DESTINATION /bin)
-
-install(TARGETS ${EXE_NAME}
+if(SNAP_BUILD)
+install(TARGETS ${TARGET_NAME}
         RUNTIME DESTINATION bin
         )
+endif()
 
