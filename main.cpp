@@ -9,6 +9,7 @@ using namespace std;
 bool ReadFromFile(const string& path, string* lhs);
 bool WriteToFile(const string& path, const string& data);
 
+#define printFailFunction() printf("-> %s() failed\n", __FUNCTION__);
 
 int main(int argc, char** argv) {
     printf("[Bild date] %s, %s\n", __DATE__, __TIME__);
@@ -18,18 +19,38 @@ int main(int argc, char** argv) {
         ("c,cookie", "Auth cookie", cxxopts::value<std::string>())
         ("config", "Path to config", cxxopts::value<std::string>()->default_value("data.ini"));
     string phpsessid;
-
+    string path;
     auto result = options.parse(argc, argv);
+
+
     if(result.count("help")){
         printf("%s\n", options.help().c_str());
         return 0;
     }
-    auto path = result["config"].as<std::string>();
+
+    if(result.count("config")){
+        path = result["config"].as<std::string>();
+    }else
+    {
+        #ifdef SNAP_BUILD
+        auto env = std::getenv("SNAP_USER_DATA");
+        if(env == nullptr){
+            printf("-> SNAP_USER_DATA env variable not found! Run it as snap!\n");
+            return 1;
+        }
+        path = string(env) + string("/data.ini");
+        #else
+        path = result["config"].as<std::string>();
+        #endif
+        printf("Path is '%s'\n", path.c_str());
+    }
+
+    
     if(result.count("cookie")){
         phpsessid = result["cookie"].as<std::string>();
         WriteToFile(path, phpsessid);
     }else if(!ReadFromFile(path, &phpsessid)){
-        printf("->Can't open file \"%s\"\n", path.c_str());
+        //printf("->Can't open file \"%s\"\n", path.c_str());
         return 0;
     }
 
@@ -86,13 +107,13 @@ int main(int argc, char** argv) {
         std::this_thread::sleep_for(std::chrono::minutes(15));
     }}
     catch (std::runtime_error &err){
-        printf("->Caught error\nWhat(): %s\n", err.what());
-        printf("->Next try in 5 mins.");
+        printf("-> Caught error\nWhat(): %s\n", err.what());
+        printf("-> Next try in 5 mins.");
         std::this_thread::sleep_for(std::chrono::minutes(5));
         goto start;
     }
     if(!logged)
-        printf("Login failed.\n");
+        printf("-> Login failed.\n");
 
     printf("Exiting...\n");
     curl_global_cleanup();
@@ -104,14 +125,30 @@ int main(int argc, char** argv) {
 }
 
 bool ReadFromFile(const string& path, string* lhs) {
-    char buf[103 + 1];
-    ifstream f(path);
-    if(!f.is_open())
-        return false;
-    f.getline(buf, 103 + 1);
-    f.close();
-    (*lhs) = std::string(buf);
-    return strlen(buf) == 103;
+    try{
+        char buf[103 + 1];
+        ifstream f(path);
+        
+        if(!f.is_open()){
+            char str[512];
+            sprintf(str, "Can't open '%s'", path.c_str());
+            throw std::runtime_error(str);
+        }
+        f.getline(buf, 103 + 1);
+        f.close();
+        (*lhs) = std::string(buf);
+        if(strlen(buf) != 103)
+            throw std::runtime_error(R"(Insufficient lenght of contents of the file. 
+            Assuming the cookie must be exactly 103 char long.)");
+
+        return true;
+    }catch(std::runtime_error& err){
+        printf("-> runtime_error. What(): %s\n", err.what());
+    }catch(...){
+        printf("-> Unknown error.\n");
+    }
+    printFailFunction();
+    return false;
 }
 
 bool WriteToFile(const string& path, const string& data){
@@ -121,10 +158,11 @@ bool WriteToFile(const string& path, const string& data){
         f.close();
         return true;
     }catch(std::ofstream::failure& writeErr){
-        printf("->%s() failed\n->What(): %s", __FUNCTION__, writeErr.what());
+        printf("-> What(): %s\n", writeErr.what());
     }catch(...){
-        printf("->%s() failed\n->Unknown error.", __FUNCTION__);
+        printf("-> Unknown error.\n");
     }
+    printFailFunction();
     return false;
 }
     
