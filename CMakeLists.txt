@@ -70,8 +70,6 @@ target_include_directories(${TARGET_NAME} PUBLIC
                             
 target_link_libraries(${TARGET_NAME} curl htmlcxx)
 
-#install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${EXE_NAME}"
-#		DESTINATION /bin)
 if(SNAP_BUILD)
 install(TARGETS ${TARGET_NAME}
         RUNTIME DESTINATION bin
