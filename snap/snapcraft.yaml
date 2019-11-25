@@ -1,6 +1,7 @@
 name: steamgiftsbot
 base: core18
-version: '0.3.1'
+#version: '0.3.1'
+adopt-info: sgbot
 summary: Bot for steamgifts.com
 description: |
     The cookie is PHPSESSID, you can obtain it after logging in site.
@@ -10,11 +11,15 @@ confinement: strict
 
 parts:
   sgbot:
-    source: .
+    source: https://github.com/knightpp/steamgifts-bot.git
     plugin: cmake
     configflags:
         - "-DSNAP_BUILD=1"
         - "-DCMAKE_BUILD_TYPE=Release"
+        - "-DCMAKE_INSTALL_PREFIX=/"
+    override-pull: |
+        snapcraftctl pull
+        snapcraftctl set-version "$(git describe --long)"
     build-packages:
       - g++
       - make
