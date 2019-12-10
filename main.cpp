@@ -42,7 +42,6 @@ int main(int argc, char** argv) {
         #else
         path = result["config"].as<std::string>();
         #endif
-        printf("Path is '%s'\n", path.c_str());
     }
 
     
