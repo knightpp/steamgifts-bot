@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <exception>
 #include "cxxopts/include/cxxopts.hpp"
+#include <windows.h>
 
 using namespace std;
 
@@ -117,7 +118,8 @@ int main(int argc, char** argv) {
     printf("Exiting...\n");
     curl_global_cleanup();
 #ifdef WIN
-    cout << "Press ENTER...";
+    // cout << "Press ENTER...";
+    system("pause");
     cin.get();
 #endif
     return 0;
@@ -125,21 +127,27 @@ int main(int argc, char** argv) {
 
 bool ReadFromFile(const string& path, string* lhs) {
     try{
-        char buf[103 + 1];
-        ifstream f(path);
+        // char buf[103 + 1];
+        // ifstream f(path);
         
+        // if(!f.is_open()){
+        //     char str[512];
+        //     sprintf(str, "Can't open '%s'", path.c_str());
+        //     throw std::runtime_error(str);
+        // }
+        // f.getline(buf, 103 + 1);
+        // f.close();
+        // (*lhs) = std::string(buf);
+        // if(strlen(buf) != 103)
+        //     throw std::runtime_error(R"(Insufficient lenght of contents of the file. 
+        //     Assuming the cookie must be exactly 103 char long.)");
+        ifstream f(path);
         if(!f.is_open()){
             char str[512];
             sprintf(str, "Can't open '%s'", path.c_str());
             throw std::runtime_error(str);
-        }
-        f.getline(buf, 103 + 1);
+        f >> (*lhs);
         f.close();
-        (*lhs) = std::string(buf);
-        if(strlen(buf) != 103)
-            throw std::runtime_error(R"(Insufficient lenght of contents of the file. 
-            Assuming the cookie must be exactly 103 char long.)");
-
         return true;
     }catch(std::runtime_error& err){
         printf("-> runtime_error. What(): %s\n", err.what());
