@@ -149,6 +149,7 @@ bool ReadFromFile(const string& path, string* lhs) {
             char str[512];
             sprintf(str, "Can't open '%s'", path.c_str());
             throw std::runtime_error(str);
+        }
         f >> (*lhs);
         f.close();
         return true;
