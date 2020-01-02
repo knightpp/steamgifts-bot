@@ -1,6 +1,0 @@
-[submodule "code"]
-	path = dependencies/htmlcxx
-	url = git://git.code.sf.net/p/htmlcxx/code
-[submodule "cxxopts"]
-	path = dependencies/cxxopts
-	url = https://github.com/jarro2783/cxxopts.git
