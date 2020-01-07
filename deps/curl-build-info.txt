@@ -1,0 +1,1 @@
+libcurl-vc-x64-release-static-zlib-static-ipv6-sspi-winssl

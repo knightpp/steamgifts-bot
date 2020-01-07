@@ -5,16 +5,17 @@
 #ifndef STEAMGIFTSBOT_SGBOT_H
 #define STEAMGIFTSBOT_SGBOT_H
 
+#include <algorithm>
 #include <fstream>
 #include <vector>
 #include <string>
-#include <curl/curl.h>
 #include <stdexcept>
 #include <iostream>
-#include <algorithm>
 #include <thread>
 #include <iomanip>
 #include <sstream>
+
+#include "curl/curl.h"
 #include "htmlcxx/html/ParserDom.h"
 //#include "Duration.h"
 
@@ -25,21 +26,37 @@
 //#undef DEBUG
 
 #ifdef DEBUG
-#define D(str) do { clog << str << std::endl; } while( false )
+#define D(str)                    \
+	do                            \
+	{                             \
+		clog << str << std::endl; \
+	} while (false)
 #else
-#define D(str) do { } while ( false )
+#define D(str) \
+	do         \
+	{          \
+	} while (false)
 #endif
 
 #ifdef LOG
-#define Log(str) do { clog << str << std::endl; } while( false )
+#define Log(str)                  \
+	do                            \
+	{                             \
+		clog << str << std::endl; \
+	} while (false)
 #else
-#define Log(str) do { } while ( false )
+#define Log(str) \
+	do           \
+	{            \
+	} while (false)
 #endif
 
 using namespace std;
 
-struct GiveAway {
-	GiveAway() : price(0),copies(1), entries(0){
+struct GiveAway
+{
+	GiveAway() : price(0), copies(1), entries(0)
+	{
 	}
 
 	string href;
@@ -48,65 +65,73 @@ struct GiveAway {
 	int copies;
 	int entries;
 
-	string getCode() const {
+	string getCode() const
+	{
 		return move(string(href.begin() + 10, href.begin() + 10 + 5));
 	}
-	void setName(const string& name) {
+	void setName(const string &name)
+	{
 		this->name = name;
 	}
-	void setName(string&& name) {
+	void setName(string &&name)
+	{
 		this->name = std::move(name);
 	}
-	float getChancePercent() const{
-		return ((float)copies/(float)(entries == 0 ? copies : entries)) * 100.0f;
+	float getChancePercent() const
+	{
+		return ((float)copies / (float)(entries == 0 ? copies : entries)) * 100.0f;
 	}
 
-	explicit operator std::string() const{
+	explicit operator std::string() const
+	{
 		std::stringstream ss;
-		ss << "{Href: " << href << "\nName: " << name << "\nPrice: " << 
-			price << "\nCopies: " << copies << "\nEntries: " << entries << '}';
+		ss << "{Href: " << href << "\nName: " << name << "\nPrice: " << price << "\nCopies: " << copies << "\nEntries: " << entries << '}';
 		return ss.str();
 	}
 };
 
 typedef std::vector<GiveAway> GArray;
 
-
-enum ERROR{	PREVIOUSLY_WON = -10, NOT_ENOUGH_POINTS, UNKNOWN, OK = 1};
-
+enum MYERROR
+{
+	PREVIOUSLY_WON = -10,
+	NOT_ENOUGH_POINTS,
+	UNKNOWN,
+	OK = 1
+};
 
 /**
  * SteamGifts account abstraction
  * 
  * Currently cannot work with multiple accounts.
  */
-class SteamGiftAcc {
+class SteamGiftAcc
+{
 private:
 	const string SITEURL = "https://www.steamgifts.com";
-	const char* USERAGENT = "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.84 Safari/537.36";
+	const char *USERAGENT = "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.84 Safari/537.36";
 	int points = 0;
 	string xsrf_token;
 	string phpsessidCookie;
 
 	SteamGiftAcc();
-	
 
 	static size_t WriteCallback(char *contents, size_t size, size_t nmemb, void *userp);
-	static int parseInt(const string&);
+	static int parseInt(const string &);
 
-	string get(const string& url, const string& cookie) const;
-	string post(const string& url, const string& cookie, const string& postfields, const GiveAway& ga) const;
-	void parseGiveaway(const string& url, GArray* array) const;
+	string get(const string &url, const string &cookie) const;
+	string post(const string &url, const string &cookie, const string &postfields, const GiveAway &ga) const;
+	void parseGiveaway(const string &url, GArray *array) const;
 
 public:
-    SteamGiftAcc(const SteamGiftAcc&) = delete;
-    SteamGiftAcc& operator=(const SteamGiftAcc&) = delete;
-	static SteamGiftAcc* getInstance();
+	SteamGiftAcc(const SteamGiftAcc &) = delete;
+	SteamGiftAcc &operator=(const SteamGiftAcc &) = delete;
+	static SteamGiftAcc *getInstance();
 	/**
 	 * Enter the giveaway.
 	 * @param giveaway to enter
 	 */
-	ERROR enterGA(const GiveAway& ga);
+	MYERROR enterGA(const GiveAway &ga);
 	/**
 	 * Parse data from the site.
 	 * @param number of pages to parse
@@ -120,8 +145,8 @@ public:
 	 * 
 	 * @param cookie string(no junk characters)
 	 */
-	bool log_in(const string& phpsessid);
-	
+	bool log_in(const string &phpsessid);
+
 	/**
 	 * Last parsed number of points
 	 *  
@@ -129,7 +154,5 @@ public:
 	 */
 	int getPoints() const;
 };
-
-
 
 #endif //STEAMGIFTSBOT_SGBOT_H
